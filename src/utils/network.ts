@@ -1,39 +1,40 @@
-import { STACKS_TESTNET, STACKS_MAINNET } from '@stacks/network';
+import { STACKS_TESTNET, STACKS_MAINNET } from "@stacks/network";
+import type { UserData } from "@stacks/connect";
 
 // Network configuration - now supports dynamic switching
 class NetworkConfig {
-  private _currentNetwork: 'testnet' | 'mainnet' = 'testnet';
-  private _listeners: Array<(network: 'testnet' | 'mainnet') => void> = [];
+  private _currentNetwork: "testnet" | "mainnet" = "testnet";
+  private _listeners: Array<(network: "testnet" | "mainnet") => void> = [];
 
   get CURRENT_NETWORK() {
     return this._currentNetwork;
   }
 
-  set CURRENT_NETWORK(network: 'testnet' | 'mainnet') {
+  set CURRENT_NETWORK(network: "testnet" | "mainnet") {
     this._currentNetwork = network;
-    this._listeners.forEach(listener => listener(network));
+    this._listeners.forEach((listener) => listener(network));
   }
 
   get network() {
-    return this._currentNetwork === 'testnet' ? STACKS_TESTNET : STACKS_MAINNET;
+    return this._currentNetwork === "testnet" ? STACKS_TESTNET : STACKS_MAINNET;
   }
-  
+
   get isTestnet() {
-    return this._currentNetwork === 'testnet';
+    return this._currentNetwork === "testnet";
   }
-  
+
   get networkName() {
     return this._currentNetwork;
   }
-  
+
   get apiUrl() {
-    return this._currentNetwork === 'testnet' 
-      ? 'https://api.testnet.hiro.so' 
-      : 'https://api.stacks.co';
+    return this._currentNetwork === "testnet"
+      ? "https://api.testnet.hiro.so"
+      : "https://api.stacks.co";
   }
 
   // Subscribe to network changes
-  onNetworkChange(listener: (network: 'testnet' | 'mainnet') => void) {
+  onNetworkChange(listener: (network: "testnet" | "mainnet") => void) {
     this._listeners.push(listener);
     return () => {
       const index = this._listeners.indexOf(listener);
@@ -44,7 +45,7 @@ class NetworkConfig {
   }
 
   // Switch network
-  switchNetwork(network: 'testnet' | 'mainnet') {
+  switchNetwork(network: "testnet" | "mainnet") {
     this.CURRENT_NETWORK = network;
   }
 }
@@ -52,10 +53,12 @@ class NetworkConfig {
 export const NETWORK_CONFIG = new NetworkConfig();
 
 // Helper function to get the correct address based on current network
-export function getCurrentAddress(userData: unknown): string | undefined {
+export function getCurrentAddress(
+  userData: UserData | null
+): string | undefined {
   if (!userData?.profile?.stxAddress) return undefined;
-  
-  return NETWORK_CONFIG.isTestnet 
-    ? userData.profile.stxAddress.testnet 
+
+  return NETWORK_CONFIG.isTestnet
+    ? userData.profile.stxAddress.testnet
     : userData.profile.stxAddress.mainnet;
 }

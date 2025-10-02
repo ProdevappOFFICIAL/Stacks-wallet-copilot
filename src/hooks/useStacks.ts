@@ -5,7 +5,6 @@ import {
   UserSession,
 } from "@stacks/connect";
 import { useEffect, useState, useMemo } from "react";
-import { NETWORK_CONFIG } from "../utils/network";
 
 export function useStacks() {
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -28,8 +27,6 @@ export function useStacks() {
         setUserData(userSession.loadUserData());
       },
       userSession,
-      // Ensure the wallet connects to the correct network
-      network: NETWORK_CONFIG.networkName,
     });
   }
 

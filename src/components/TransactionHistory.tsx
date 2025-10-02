@@ -6,9 +6,9 @@ import {
   XCircle,
   AlertCircle,
   ArrowUpRight,
-  ArrowDownLeft,
+  
   Filter,
-  Calendar,
+
   TrendingUp,
   ExternalLink,
   Copy,
@@ -36,8 +36,7 @@ interface TransactionHistoryProps {
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({
   isOpen,
-  onClose,
-  currentAddress
+  onClose
 }) => {
   const [transactions, setTransactions] = useState<AnyTransaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<AnyTransaction[]>([]);

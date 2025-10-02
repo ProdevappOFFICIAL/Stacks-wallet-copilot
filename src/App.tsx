@@ -765,7 +765,7 @@ const App: React.FC = () => {
                     onClick={async () => {
                       console.log('Testing wallet connection...');
                       try {
-                        const { openSTXTransfer } = await import('@stacks/connect');
+                       
                         console.log('Stacks Connect imported successfully');
                         console.log('UserSession signed in:', userSession.isUserSignedIn());
                         console.log('User data:', userData);
