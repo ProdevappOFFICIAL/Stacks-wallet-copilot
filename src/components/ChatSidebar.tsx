@@ -53,17 +53,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     <motion.div
       initial={false}
       animate={{ width: isCollapsed ? 60 : 280 }}
-      className="bg-slate-900/50 backdrop-blur-sm border-r border-slate-700 flex flex-col h-full"
+      className="bg-slate-900/50 backdrop-blur-sm border-r border-slate-700 flex flex-col h-screen lg:h-full"
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-700">
+      <div className="p-3 sm:p-4 border-b border-slate-700">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <h2 className="text-white font-semibold text-sm">Chat History</h2>
           )}
           <button
             onClick={onToggleCollapse}
-            className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors lg:block"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -73,7 +73,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {!isCollapsed && (
           <button
             onClick={onNewChat}
-            className="w-full mt-3 flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all text-sm font-medium"
+            className="w-full mt-3 flex items-center gap-2 px-3 py-2.5 sm:py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all text-sm font-medium"
           >
             <Plus size={16} />
             New Chat
@@ -83,7 +83,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {isCollapsed && (
           <button
             onClick={onNewChat}
-            className="w-full mt-3 flex items-center justify-center p-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all"
+            className="w-full mt-3 flex items-center justify-center p-2.5 sm:p-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all"
             title="New Chat"
           >
             <Plus size={16} />
@@ -108,7 +108,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             >
               <button
                 onClick={() => onSessionSelect(session.id)}
-                className={`w-full p-3 text-left transition-colors ${isCollapsed ? 'flex justify-center' : ''
+                className={`w-full p-3 sm:p-3 text-left transition-colors ${isCollapsed ? 'flex justify-center' : ''
                   }`}
                 title={isCollapsed ? session.title : undefined}
               >
@@ -131,8 +131,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                         {session.title}
                       </p>
                       <div className="flex items-center gap-1 mt-1">
-                        <Calendar size={12} className="text-slate-500" />
-                        <span className="text-xs text-slate-500">
+                        <Calendar size={12} className="text-slate-500 flex-shrink-0" />
+                        <span className="text-xs text-slate-500 truncate">
                           {formatDate(session.updatedAt)}
                         </span>
                       </div>

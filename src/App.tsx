@@ -69,43 +69,44 @@ const ActionPreviewModal: React.FC<ActionPreviewProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Confirm Transfer</h2>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full shadow-xl">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Confirm Transfer</h2>
         <div className="space-y-3 mb-6">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Type:</span>
-            <span className="font-semibold text-gray-900 capitalize">{details.type}</span>
+          <div className="flex justify-between items-start">
+            <span className="text-gray-600 text-sm">Type:</span>
+            <span className="font-semibold text-gray-900 capitalize text-sm">{details.type}</span>
           </div>
           {details.recipient && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Recipient:</span>
-              <span className="font-mono text-sm text-gray-900">
-                {details.recipient.slice(0, 8)}...{details.recipient.slice(-6)}
+            <div className="flex justify-between items-start">
+              <span className="text-gray-600 text-sm">Recipient:</span>
+              <span className="font-mono text-xs sm:text-sm text-gray-900 break-all text-right max-w-[60%]">
+                <span className="sm:hidden">{details.recipient.slice(0, 6)}...{details.recipient.slice(-4)}</span>
+                <span className="hidden sm:inline">{details.recipient.slice(0, 8)}...{details.recipient.slice(-6)}</span>
               </span>
             </div>
           )}
           {details.amount !== undefined && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-bold text-gray-900">{details.amount} STX</span>
+            <div className="flex justify-between items-start">
+              <span className="text-gray-600 text-sm">Amount:</span>
+              <span className="font-bold text-gray-900 text-sm">{details.amount} STX</span>
             </div>
           )}
           {details.memo && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Memo:</span>
-              <span className="text-gray-900">{details.memo}</span>
+            <div className="flex justify-between items-start">
+              <span className="text-gray-600 text-sm">Memo:</span>
+              <span className="text-gray-900 text-sm text-right max-w-[60%] break-words">{details.memo}</span>
             </div>
           )}
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => {
               console.log('Cancel button clicked');
               onCancel();
             }}
             disabled={isProcessing}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 text-sm font-medium"
           >
             Cancel
           </button>
@@ -116,15 +117,19 @@ const ActionPreviewModal: React.FC<ActionPreviewProps> = ({
               onConfirm();
             }}
             disabled={isProcessing}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-medium"
           >
             {isProcessing ? (
               <>
                 <Loader2 size={16} className="animate-spin" />
-                Processing...
+                <span className="hidden sm:inline">Processing...</span>
+                <span className="sm:hidden">Processing</span>
               </>
             ) : (
-              'Confirm Transfer'
+              <>
+                <span className="hidden sm:inline">Confirm Transfer</span>
+                <span className="sm:hidden">Confirm</span>
+              </>
             )}
           </button>
         </div>
@@ -144,20 +149,21 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
     >
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 ${isUser
+        className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-3 ${isUser
           ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
           : 'bg-slate-800 text-slate-100 border border-slate-700'
           }`}
       >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
           {message.content}
         </p>
         {message.txHash && (
           <div className="mt-2 pt-2 border-t border-white/20">
             <div className="flex items-center gap-2 text-xs">
               <CheckCircle2 size={14} />
-              <span className="font-mono">
-                {message.txHash.slice(0, 8)}...{message.txHash.slice(-6)}
+              <span className="font-mono break-all sm:break-normal">
+                <span className="sm:hidden">{message.txHash.slice(0, 6)}...{message.txHash.slice(-4)}</span>
+                <span className="hidden sm:inline">{message.txHash.slice(0, 8)}...{message.txHash.slice(-6)}</span>
               </span>
             </div>
           </div>
@@ -176,15 +182,18 @@ const App: React.FC = () => {
 
   // Chat history state
   const [chatHistory, setChatHistory] = useState<ChatHistory>(() => loadChatHistory());
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // Start collapsed on mobile, expanded on desktop
+    return window.innerWidth < 1024;
+  });
 
   // Current session state - memoized to prevent unnecessary re-renders
-  const activeSession = useMemo(() => 
+  const activeSession = useMemo(() =>
     chatHistory.sessions.find(s => s.id === chatHistory.activeSessionId),
     [chatHistory.sessions, chatHistory.activeSessionId]
   );
-  
-  const messages = useMemo(() => 
+
+  const messages = useMemo(() =>
     activeSession?.messages || [],
     [activeSession?.messages]
   );
@@ -229,6 +238,24 @@ const App: React.FC = () => {
     return unsubscribe;
   }, [addMessage, userData]);
 
+  // Handle window resize for responsive sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // Desktop: expand sidebar if it was collapsed due to mobile
+        if (sidebarCollapsed) {
+          setSidebarCollapsed(false);
+        }
+      } else {
+        // Mobile: collapse sidebar
+        setSidebarCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [sidebarCollapsed]);
+
   // Debug state changes
   useEffect(() => {
     console.log('State changed:', { showPreview, pendingTx, isProcessing });
@@ -248,7 +275,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (userData && !hasShownWelcomeRef.current) {
       hasShownWelcomeRef.current = true;
-      
+
       // Fetch balance and show connection message
       const fetchBalanceAndConnect = async () => {
         try {
@@ -279,6 +306,10 @@ const App: React.FC = () => {
       sessions: [newSession, ...prev.sessions],
       activeSessionId: newSession.id
     }));
+    // Close sidebar on mobile after creating new chat
+    if (window.innerWidth < 1024) {
+      setSidebarCollapsed(true);
+    }
   };
 
   const handleSessionSelect = (sessionId: string) => {
@@ -286,6 +317,10 @@ const App: React.FC = () => {
       ...prev,
       activeSessionId: sessionId
     }));
+    // Close sidebar on mobile after selecting a session
+    if (window.innerWidth < 1024) {
+      setSidebarCollapsed(true);
+    }
   };
 
   const handleDeleteSession = (sessionId: string) => {
@@ -588,82 +623,130 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex relative">
+      {/* Mobile Sidebar Overlay */}
+      {!sidebarCollapsed && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarCollapsed(true)}
+        />
+      )}
+
       {/* Sidebar */}
-      <ChatSidebar
-        sessions={chatHistory.sessions}
-        activeSessionId={chatHistory.activeSessionId}
-        onSessionSelect={handleSessionSelect}
-        onNewChat={handleNewChat}
-        onDeleteSession={handleDeleteSession}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+      <div className={`${sidebarCollapsed
+          ? 'fixed -translate-x-full lg:translate-x-0 lg:relative'
+          : 'fixed translate-x-0 lg:relative'
+        } z-50 lg:z-auto transition-transform duration-300 ease-in-out h-full`}>
+        <ChatSidebar
+          sessions={chatHistory.sessions}
+          activeSessionId={chatHistory.activeSessionId}
+          onSessionSelect={handleSessionSelect}
+          onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="border-b border-slate-700 bg-slate-900/50 backdrop-blur-sm">
           <div className="px-4 py-4 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                <Wallet size={18} className="text-white" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="lg:hidden p-2 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Wallet size={14} className="text-white sm:w-[18px] sm:h-[18px]" />
               </div>
-              <h1 className="text-xl font-bold text-white">Stacks Assistant</h1>
-              <NetworkSwitcher onNetworkChange={(network) => {
-                console.log('Network changed to:', network);
-              }} />
+              <h1 className="text-lg sm:text-xl font-bold text-white truncate">Stacks Assistant</h1>
+              <div className="hidden sm:block">
+                <NetworkSwitcher onNetworkChange={(network) => {
+                  console.log('Network changed to:', network);
+                }} />
+              </div>
             </div>
             {userData ? (
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setShowTransactionHistory(true)}
-                  className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <span className="relative flex items-center gap-2">
-                    <History className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                    History
-                  </span>
-                </button>
-                <div
-                  className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] transition-transform duration-700"></div>
-                  <span className="relative flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    Dashboard
-                  </span>
-                </div>
-                <div className="flex items-center bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-700 text-sm font-medium">
-                      {abbreviateAddress(getCurrentAddress(userData) || '')}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-1 sm:gap-3">
+                {/* Mobile: Show only essential buttons */}
+                <div className="sm:hidden flex items-center gap-1">
+                  <button
+                    onClick={() => setShowTransactionHistory(true)}
+                    className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                    title="Transaction History"
+                  >
+                    <History className="w-4 h-4" />
+                  </button>
                   <button
                     type="button"
                     onClick={handleDisconnectWallet}
-                    className="group px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 border-l border-gray-200 rounded-r-lg transition-all duration-200"
+                    className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                     title="Disconnect Wallet"
                   >
-                    <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    <LogOut className="w-4 h-4" />
                   </button>
+                </div>
+
+                {/* Desktop: Show full buttons */}
+                <div className="hidden sm:flex items-center gap-3">
+                  <button
+                    onClick={() => setShowTransactionHistory(true)}
+                    className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                    <span className="relative flex items-center gap-2">
+                      <History className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                      History
+                    </span>
+                  </button>
+                  <div
+                    className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] transition-transform duration-700"></div>
+                    <span className="relative flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Dashboard
+                    </span>
+                  </div>
+                  <div className="flex items-center bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-2 px-3 py-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-700 text-sm font-medium">
+                        {abbreviateAddress(getCurrentAddress(userData) || '')}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleDisconnectWallet}
+                      className="group px-3 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 border-l border-gray-200 rounded-r-lg transition-all duration-200"
+                      title="Disconnect Wallet"
+                    >
+                      <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={connectWallet}
-                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
+                className="group relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-3 sm:px-5 py-2 sm:py-2.5 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                <span className="relative flex items-center gap-2">
+                <span className="relative flex items-center gap-1 sm:gap-2">
                   <Wallet2 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  Connect Wallet
+                  <span className="hidden sm:inline">Connect Wallet</span>
+                  <span className="sm:hidden">Connect</span>
                 </span>
               </button>
             )}
@@ -673,9 +756,9 @@ const App: React.FC = () => {
         </header>
 
         {/* Main Chat Area */}
-        <main className="flex-1 px-4 py-6 flex flex-col max-h-[calc(100vh-80px)]">
+        <main className="flex-1 px-2 sm:px-4 py-4 sm:py-6 flex flex-col max-h-[calc(100vh-80px)]">
           {/* Messages Container */}
-          <div className="flex-1 overflow-y-auto mb-6 space-y-1">
+          <div className="flex-1 overflow-y-auto mb-4 sm:mb-6 space-y-1">
             <div className="min-h-full flex flex-col justify-end">
               {messages.map((message) => (
                 <MessageBubble key={message.id} message={message} />
@@ -697,9 +780,9 @@ const App: React.FC = () => {
           </div>
 
           {/* Input Area */}
-          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-4">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-3 sm:p-4">
             {!userData && (
-              <div className="mb-4 p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg flex items-start gap-2">
+              <div className="mb-3 sm:mb-4 p-3 bg-amber-400/10 border border-amber-400/20 rounded-lg flex items-start gap-2">
                 <AlertCircle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
                 <p className="text-amber-400 text-sm">
                   Connect your Stacks wallet to start using blockchain features.
@@ -707,7 +790,14 @@ const App: React.FC = () => {
               </div>
             )}
 
-            <div className="flex gap-3">
+            {/* Mobile Network Switcher */}
+            <div className="sm:hidden mb-3">
+              <NetworkSwitcher onNetworkChange={(network) => {
+                console.log('Network changed to:', network);
+              }} />
+            </div>
+
+            <div className="flex gap-2 sm:gap-3">
               <div className="flex-1 relative">
                 <textarea
                   value={input}
@@ -719,7 +809,7 @@ const App: React.FC = () => {
                       : "Connect your wallet to get started..."
                   }
                   disabled={!userData || isLoading}
-                  className="w-full bg-slate-900/50 border border-slate-600 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[50px] max-h-32 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-slate-900/50 border border-slate-600 rounded-xl px-3 sm:px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none min-h-[50px] max-h-32 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                   rows={1}
                   style={{
                     height: 'auto',
@@ -735,27 +825,30 @@ const App: React.FC = () => {
               <button
                 onClick={handleSubmit}
                 disabled={!input.trim() || !userData || isLoading}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[100px] justify-center"
+                className="px-4 sm:px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[80px] sm:min-w-[100px] justify-center text-sm sm:text-base"
               >
                 {isLoading ? (
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin sm:w-[18px] sm:h-[18px]" />
                 ) : (
                   <>
-                    <Send size={18} />
-                    Send
+                    <Send size={16} className="sm:w-[18px] sm:h-[18px]" />
+                    <span className="hidden sm:inline">Send</span>
                   </>
                 )}
               </button>
             </div>
 
-            <div className="mt-3 flex justify-between items-center">
+            <div className="mt-3 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <div className="text-xs text-slate-500">
-                <p>
+                <p className="hidden sm:block">
                   Try: "Send 0.01 STX to ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM" or "Check my balance"
+                </p>
+                <p className="sm:hidden">
+                  Try: "Send 0.01 STX to [address]" or "Check my balance"
                 </p>
               </div>
               {userData && (
-                <div className="flex gap-2">
+                <div className="flex gap-1 sm:gap-2 flex-wrap">
                   <button
                     onClick={() => {
                       const testTx: TransactionDetails = {
@@ -769,7 +862,7 @@ const App: React.FC = () => {
                       setShowPreview(true);
                       console.log('Test modal triggered');
                     }}
-                    className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-2 py-1 rounded"
+                    className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-2 py-1.5 sm:py-1 rounded"
                   >
                     Test Modal
                   </button>
@@ -777,7 +870,7 @@ const App: React.FC = () => {
                     onClick={async () => {
                       console.log('Testing wallet connection...');
                       try {
-                       
+
                         console.log('Stacks Connect imported successfully');
                         console.log('UserSession signed in:', userSession.isUserSignedIn());
                         console.log('User data:', userData);
@@ -787,7 +880,7 @@ const App: React.FC = () => {
                         addMessage('assistant', `❌ Wallet test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
                       }
                     }}
-                    className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded"
+                    className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1.5 sm:py-1 rounded"
                   >
                     Test Wallet
                   </button>
@@ -797,7 +890,7 @@ const App: React.FC = () => {
                       const result = testTransactionHistory();
                       addMessage('assistant', `✅ Transaction history test completed. Found ${result.transactions.length} transactions in history.`);
                     }}
-                    className="text-xs bg-orange-700 hover:bg-orange-600 text-white px-2 py-1 rounded"
+                    className="text-xs bg-orange-700 hover:bg-orange-600 text-white px-2 py-1.5 sm:py-1 rounded"
                   >
                     Test History
                   </button>

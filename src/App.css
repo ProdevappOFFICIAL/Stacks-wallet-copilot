@@ -1,8 +1,25 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0;
   text-align: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 640px) {
+  #root {
+    padding: 0;
+  }
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 1024px) {
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 .logo {
