@@ -288,6 +288,7 @@ const App: React.FC = () => {
           } else {
             addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${getCurrentAddress(userData)}\n\nHow can I assist you with blockchain transactions today?`);
           }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           const address = getCurrentAddress(userData);
           addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${address}\n\nNote: Could not fetch balance at this time.\n\nHow can I assist you with blockchain transactions today?`);
@@ -634,8 +635,8 @@ const App: React.FC = () => {
 
       {/* Sidebar */}
       <div className={`${sidebarCollapsed
-          ? 'fixed -translate-x-full lg:translate-x-0 lg:relative'
-          : 'fixed translate-x-0 lg:relative'
+        ? 'fixed -translate-x-full lg:translate-x-0 lg:relative'
+        : 'fixed translate-x-0 lg:relative'
         } z-50 lg:z-auto transition-transform duration-300 ease-in-out h-full`}>
         <ChatSidebar
           sessions={chatHistory.sessions}
