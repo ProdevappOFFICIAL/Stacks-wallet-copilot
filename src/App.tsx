@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   AnchorMode,
   PostConditionMode
@@ -178,9 +178,16 @@ const App: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatHistory>(() => loadChatHistory());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Current session state
-  const activeSession = chatHistory.sessions.find(s => s.id === chatHistory.activeSessionId);
-  const messages = activeSession?.messages || [];
+  // Current session state - memoized to prevent unnecessary re-renders
+  const activeSession = useMemo(() => 
+    chatHistory.sessions.find(s => s.id === chatHistory.activeSessionId),
+    [chatHistory.sessions, chatHistory.activeSessionId]
+  );
+  
+  const messages = useMemo(() => 
+    activeSession?.messages || [],
+    [activeSession?.messages]
+  );
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -192,16 +199,19 @@ const App: React.FC = () => {
 
   // Chat management functions - declared early to avoid hoisting issues
   const addMessage = useCallback((role: 'user' | 'assistant', content: string, txHash?: string) => {
-    if (!activeSession) return;
+    setChatHistory(prev => {
+      const currentActiveSession = prev.sessions.find(s => s.id === prev.activeSessionId);
+      if (!currentActiveSession) return prev;
 
-    const updatedSession = addMessageToSession(activeSession, role, content, txHash);
-    setChatHistory(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(s =>
-        s.id === activeSession.id ? updatedSession : s
-      )
-    }));
-  }, [activeSession]);
+      const updatedSession = addMessageToSession(currentActiveSession, role, content, txHash);
+      return {
+        ...prev,
+        sessions: prev.sessions.map(s =>
+          s.id === currentActiveSession.id ? updatedSession : s
+        )
+      };
+    });
+  }, []);
 
   // Save chat history whenever it changes
   useEffect(() => {
@@ -225,6 +235,7 @@ const App: React.FC = () => {
   }, [showPreview, pendingTx, isProcessing]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasShownWelcomeRef = useRef(false);
 
   // Network configuration - centralized network management
   const network = NETWORK_CONFIG.network;
@@ -235,32 +246,32 @@ const App: React.FC = () => {
 
   // Handle wallet connection status changes and fetch balance
   useEffect(() => {
-    if (userData) {
-      // Only add message if this is a new connection (not on page load with existing session)
-      const isNewConnection = messages.length === 1; // Only initial message exists
-      if (isNewConnection) {
-        // Fetch balance and show connection message
-        const fetchBalanceAndConnect = async () => {
-          try {
-            // Get the correct address based on network
-            const address = getCurrentAddress(userData);
+    if (userData && !hasShownWelcomeRef.current) {
+      hasShownWelcomeRef.current = true;
+      
+      // Fetch balance and show connection message
+      const fetchBalanceAndConnect = async () => {
+        try {
+          // Get the correct address based on network
+          const address = getCurrentAddress(userData);
 
-            if (address) {
-              const balance = await getSTXBalance(address, NETWORK_CONFIG.networkName);
-              addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${address}\nBalance: ${balance.toFixed(6)} STX\n\nTry saying: "Send 0.01 STX to ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM" or "Check my balance"\n\nHow can I assist you with blockchain transactions today?`);
-            } else {
-              addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${getCurrentAddress(userData)}\n\nHow can I assist you with blockchain transactions today?`);
-            }
-          } catch (error) {
-            const address = getCurrentAddress(userData);
-            addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${address}\n\nNote: Could not fetch balance at this time.\n\nHow can I assist you with blockchain transactions today?`);
+          if (address) {
+            const balance = await getSTXBalance(address, NETWORK_CONFIG.networkName);
+            addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${address}\nBalance: ${balance.toFixed(6)} STX\n\nTry saying: "Send 0.01 STX to ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM" or "Check my balance"\n\nHow can I assist you with blockchain transactions today?`);
+          } else {
+            addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${getCurrentAddress(userData)}\n\nHow can I assist you with blockchain transactions today?`);
           }
-        };
+        } catch (error) {
+          const address = getCurrentAddress(userData);
+          addMessage('assistant', `Wallet connected successfully! 🎉\n\nNetwork: ${NETWORK_CONFIG.networkName.toUpperCase()}\nYour address: ${address}\n\nNote: Could not fetch balance at this time.\n\nHow can I assist you with blockchain transactions today?`);
+        }
+      };
 
-        fetchBalanceAndConnect();
-      }
+      fetchBalanceAndConnect();
+    } else if (!userData) {
+      hasShownWelcomeRef.current = false;
     }
-  }, [userData, messages.length, addMessage]);
+  }, [userData, addMessage]);
 
   const handleNewChat = () => {
     const newSession = createNewSession();
@@ -447,6 +458,7 @@ const App: React.FC = () => {
     if (!input.trim() || !userData) return;
 
     const userMessage = input.trim();
+    console.log('Adding user message:', userMessage);
     addMessage('user', userMessage);
     setInput('');
     setIsLoading(true);

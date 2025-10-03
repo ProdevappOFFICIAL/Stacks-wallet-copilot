@@ -30,7 +30,7 @@ class NetworkConfig {
   get apiUrl() {
     return this._currentNetwork === "testnet"
       ? "https://api.testnet.hiro.so"
-      : "https://api.stacks.co";
+      : "https://api.hiro.so";
   }
 
   // Subscribe to network changes

@@ -47,7 +47,7 @@ export const NetworkSwitcher: React.FC<NetworkSwitcherProps> = ({ onNetworkChang
     },
     {
       id: 'mainnet' as const,
-      name: 'Mainnet', 
+      name: 'Mainnet',
       description: 'Live network',
       color: 'green',
       icon: Wifi
@@ -62,17 +62,16 @@ export const NetworkSwitcher: React.FC<NetworkSwitcherProps> = ({ onNetworkChang
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${
-          currentNetwork === 'testnet'
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all border ${currentNetwork === 'testnet'
             ? 'bg-orange-500/10 text-orange-400 border-orange-500/30 hover:bg-orange-500/20'
             : 'bg-green-500/10 text-green-400 border-green-500/30 hover:bg-green-500/20'
-        }`}
+          }`}
       >
         <CurrentIcon size={14} />
         <span>{currentNetworkData?.name}</span>
-        <ChevronDown 
-          size={14} 
-          className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+        <ChevronDown
+          size={14}
+          className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -86,18 +85,17 @@ export const NetworkSwitcher: React.FC<NetworkSwitcherProps> = ({ onNetworkChang
             {networks.map((network) => {
               const Icon = network.icon;
               const isSelected = network.id === currentNetwork;
-              
+
               return (
                 <button
                   key={network.id}
                   onClick={() => handleNetworkSwitch(network.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all ${
-                    isSelected
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all ${isSelected
                       ? network.color === 'orange'
                         ? 'bg-orange-500/20 text-orange-400'
                         : 'bg-green-500/20 text-green-400'
                       : 'text-slate-300 hover:bg-slate-700'
-                  }`}
+                    }`}
                 >
                   <Icon size={16} />
                   <div className="flex-1">
@@ -105,15 +103,14 @@ export const NetworkSwitcher: React.FC<NetworkSwitcherProps> = ({ onNetworkChang
                     <div className="text-xs text-slate-400">{network.description}</div>
                   </div>
                   {isSelected && (
-                    <div className={`w-2 h-2 rounded-full ${
-                      network.color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
-                    }`} />
+                    <div className={`w-2 h-2 rounded-full ${network.color === 'orange' ? 'bg-orange-500' : 'bg-green-500'
+                      }`} />
                   )}
                 </button>
               );
             })}
           </div>
-          
+
           {/* Warning Message */}
           <div className="border-t border-slate-700 p-3 bg-slate-900/50">
             <div className="flex items-start gap-2 text-xs text-amber-400">

@@ -61,12 +61,30 @@ After making changes:
 
 3. **Test a small transaction**: Try sending a very small amount (0.000001 STX) to verify everything works
 
+## API Endpoint Issues
+
+If you're experiencing issues with mainnet balance fetching or transactions:
+
+1. **Check API endpoints**: Ensure you're using the correct Hiro API endpoints:
+   - Testnet: `https://api.testnet.hiro.so`
+   - Mainnet: `https://api.hiro.so` (NOT `api.stacks.co`)
+
+2. **Network connectivity**: Test API connectivity:
+   ```bash
+   # Test mainnet API
+   curl "https://api.hiro.so/extended/v1/info"
+   
+   # Test testnet API  
+   curl "https://api.testnet.hiro.so/extended/v1/info"
+   ```
+
 ## Still Having Issues?
 
 1. **Clear browser cache and localStorage**
 2. **Try a different wallet** (if you have multiple installed)
 3. **Check wallet extension updates**
 4. **Restart your browser**
+5. **Verify API endpoints are correct** (see API Endpoint Issues above)
 
 ## Network-Specific Test Addresses
 

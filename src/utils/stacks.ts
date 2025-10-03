@@ -10,7 +10,7 @@ export function abbreviateAddress(address: string) {
   export async function getSTXBalance(address: string, network: 'mainnet' | 'testnet' = 'testnet'): Promise<number> {
     try {
       const baseUrl = network === 'mainnet' 
-        ? 'https://api.stacks.co' 
+        ? 'https://api.hiro.so' 
         : 'https://api.testnet.hiro.so';
       
       const response = await fetch(`${baseUrl}/extended/v1/address/${address}/balances`);
