@@ -1,11 +1,12 @@
 # Stacks Chat Assistant
 
-An AI-powered blockchain assistant for seamless Stacks (STX) transactions through a ChatGPT-like interface.
+An AI-powered blockchain assistant for seamless Stacks (STX) transactions through a ChatGPT-like interface. Now powered by OpenRouter AI for intelligent conversation and automatic action detection.
 
 ## Features
 
+- 🤖 **AI-Powered Chat**: Intelligent responses using OpenRouter AI with natural language understanding
 - 🔗 **Wallet Integration**: Connect with Stacks wallets via @stacks/connect
-- 💬 **Chat Interface**: Natural language commands for blockchain operations
+- 💬 **Smart Chat Interface**: AI automatically detects and executes blockchain operations
 - 📚 **Chat History**: Persistent chat sessions stored in localStorage
 - 🆕 **Multiple Chats**: Create and manage multiple chat sessions
 - 🔍 **Transaction Preview**: Review all transaction details before signing
@@ -13,6 +14,7 @@ An AI-powered blockchain assistant for seamless Stacks (STX) transactions throug
 - ✨ **Smooth Animations**: Beautiful UI with Framer Motion
 - 🛡️ **Type Safety**: Full TypeScript support
 - 🎨 **Modern Design**: Tailwind CSS with gradient themes
+- 🧠 **Context Awareness**: AI understands your wallet state, balance, and transaction history
 
 ## Supported Commands
 
@@ -24,29 +26,65 @@ An AI-powered blockchain assistant for seamless Stacks (STX) transactions throug
 
 ## Tech Stack
 
-- **Frontend**: React 18, TypeScript, Vite
+- **Frontend**: React 19, TypeScript, Vite
+- **AI**: OpenRouter API with Llama 3.2 (free tier)
 - **Styling**: Tailwind CSS
 - **Animations**: Framer Motion
 - **Icons**: Lucide React
 - **Blockchain**: Stacks SDK (@stacks/connect, @stacks/transactions, @stacks/network)
 
+## AI Integration
+
+The assistant uses OpenRouter AI to provide intelligent responses and automatic action detection:
+
+- **Smart Parsing**: Understands natural language requests for blockchain operations
+- **Context Awareness**: Knows your current balance, address, and network
+- **Fallback Support**: Works even without API key (limited functionality)
+- **Cost Effective**: Uses free/low-cost models by default
+- **Secure**: No sensitive data sent to AI - only transaction intents
+
 ## Getting Started
 
-1. **Install dependencies**:
+### Prerequisites
+
+- Node.js 18+ and npm
+- A Stacks wallet (Hiro, Xverse, or Leather)
+- OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai))
+
+### Setup
+
+1. **Clone and install dependencies**:
 
    ```bash
+   git clone <your-repo-url>
+   cd stacks-chat-assistant
    npm install
    ```
 
-2. **Start development server**:
+2. **Configure environment variables**:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and add your OpenRouter API key:
+
+   ```env
+   VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
+   VITE_OPENROUTER_MODEL=meta-llama/llama-3.2-3b-instruct:free
+   ```
+
+   > **Note**: The default model `meta-llama/llama-3.2-3b-instruct:free` is cost-effective for basic operations. You can upgrade to more powerful models like `anthropic/claude-3.5-sonnet` for better performance.
+
+3. **Start development server**:
 
    ```bash
    npm run dev
    ```
 
-3. **Open your browser** and navigate to `http://localhost:5173`
+4. **Open your browser** and navigate to `http://localhost:5173`
 
-4. **Connect your Stacks wallet** and start chatting!
+5. **Connect your Stacks wallet** and start chatting with the AI!
 
 ## Usage
 
@@ -74,15 +112,51 @@ An AI-powered blockchain assistant for seamless Stacks (STX) transactions throug
 - **Copy Functions**: Easy copying of transaction hashes and addresses
 - **Statistics**: Overview of total transactions, confirmed count, and STX amounts
 
-## Example Commands
+## AI-Powered Natural Language Commands
 
+The AI assistant understands natural language and can handle various ways of expressing the same request:
+
+### Transfer STX
 ```
 Send 0.01 STX to ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-What's my balance?
-What's my address?
-Show my transaction history
-Help
+Transfer 5 STX to my friend's address ST...
+I want to send some STX to ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+Can you help me transfer 0.5 STX?
 ```
+
+### Check Balance
+```
+What's my balance?
+How much STX do I have?
+Check my wallet balance
+Show me my current balance
+```
+
+### Get Address
+```
+What's my address?
+Show me my wallet address
+What's my STX address?
+I need my address
+```
+
+### Transaction History
+```
+Show my transaction history
+What are my recent transactions?
+I want to see my past transactions
+Transaction history please
+```
+
+### General Help
+```
+Help
+What can you do?
+How do I use this?
+What commands do you support?
+```
+
+The AI will understand context and provide helpful responses even for unclear requests!
 
 ## Network Configuration
 
