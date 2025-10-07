@@ -39,8 +39,8 @@ class AIService {
   private baseUrl = "https://openrouter.ai/api/v1/chat/completions";
   private failureCount = 0;
   private lastFailureTime = 0;
-  private readonly maxFailures = 3;
-  private readonly failureResetTime = 60000; // 1 minute
+  private readonly maxFailures = 5;
+  private readonly failureResetTime = 300000; // 5 minutes
 
   constructor() {
     // Check both environment variables and localStorage for API key
@@ -89,6 +89,11 @@ TRANSACTION HANDLING:
 - If user mentions sending to a person's name, ask for their STX address
 - Always confirm transaction details before execution
 - Validate STX addresses (they start with ST for testnet, SP for mainnet)
+- NEVER simulate or fake transaction results
+- NEVER generate fake transaction IDs
+- Only guide users to provide the required information
+
+IMPORTANT: You are a conversational interface only. You do NOT execute transactions yourself. The system will handle the actual blockchain operations when the user provides complete information.
 
 Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
   }
@@ -105,6 +110,7 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
       conversationHistory,
       userMessage
     );
+
     // Handle simple cases immediately without AI
     const quickResponse = this.getQuickResponse(userMessage);
     if (quickResponse) {
@@ -127,7 +133,7 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
       now - this.lastFailureTime < this.failureResetTime
     ) {
       console.log("Circuit breaker active, using fallback response");
-      return this.getFallbackResponse(userMessage);
+      return this.getFallbackResponse(userMessage, context);
     }
 
     // Reset failure count if enough time has passed
@@ -135,33 +141,31 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
       this.failureCount = 0;
     }
 
-    // Wrap the entire operation in a race with timeout
-    const timeoutPromise = new Promise<AIResponse>((_, reject) => {
-      setTimeout(() => {
-        console.error("Global timeout reached, falling back to local response");
-        reject(new Error("Global timeout"));
-      }, 8000);
-    });
-
-    const mainPromise = this.generateResponseInternal(
-      userMessage,
-      conversationHistory,
-      userAddress,
-      balance,
-      network,
-      context
-    );
-
     try {
-      const result = await Promise.race([mainPromise, timeoutPromise]);
+      const result = await this.generateResponseInternal(
+        userMessage,
+        conversationHistory,
+        userAddress,
+        balance,
+        network,
+        context
+      );
       // Reset failure count on success
       this.failureCount = 0;
       return result;
     } catch (error) {
-      console.error("AI generation failed or timed out:", error);
+      console.error("AI generation failed:", error);
       this.failureCount++;
       this.lastFailureTime = Date.now();
-      return this.getFallbackResponse(userMessage, context);
+
+      // Only fallback after multiple failures
+      if (this.failureCount >= this.maxFailures) {
+        console.log("Too many failures, using fallback response");
+        return this.getFallbackResponse(userMessage, context);
+      }
+
+      // For single failures, throw to let the UI handle it
+      throw error;
     }
   }
 
@@ -173,8 +177,11 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
     network?: string,
     context?: ConversationContext
   ): Promise<AIResponse> {
-    // Only use the Tongyi DeepResearch model
-    const modelsToTry = ["alibaba/tongyi-deepresearch-30b-a3b:free"];
+    // Try available models in order
+    const modelsToTry = [
+      this.model, // Try the selected model first
+      ...this.getAvailableModels().filter((m) => m !== this.model), // Then try others
+    ];
 
     for (const modelToTry of modelsToTry) {
       try {
@@ -205,7 +212,7 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
         const timeoutId = setTimeout(() => {
           console.log(`Request timeout for model ${modelToTry}`);
           controller.abort();
-        }, 6000); // 6 second timeout
+        }, 30000); // 30 second timeout
 
         const response = await fetch(this.baseUrl, {
           method: "POST",
@@ -301,12 +308,9 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
         console.error(`Error with model ${modelToTry}:`, error);
 
         if (error instanceof Error && error.name === "AbortError") {
-          console.error("Request timed out");
-          return {
-            message:
-              "I'm taking a bit longer to respond than usual. Let me try a simpler approach to help you.",
-            action: this.extractActionFromText(userMessage),
-          };
+          console.error("Request timed out for model:", modelToTry);
+          // Continue to next model instead of returning immediately
+          continue;
         }
 
         // Continue to next model
@@ -314,9 +318,9 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
       }
     }
 
-    // If all models failed, use fallback
-    console.error("All AI models failed, using fallback");
-    return this.getFallbackResponse(userMessage, context);
+    // If all models failed, throw error instead of fallback
+    console.error("All AI models failed");
+    throw new Error("All AI models failed to respond");
   }
 
   private analyzeConversationContext(
@@ -373,7 +377,7 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
   }
 
   private getQuickResponse(
-    userMessage: string,
+    userMessage: string
     //context?: ConversationContext
   ): AIResponse | null {
     const lowerInput = userMessage.toLowerCase().trim();
@@ -681,25 +685,32 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
       return { type: "history" };
     }
 
-    // Handle complete STX transfers (amount + address)
+    // Handle complete STX transfers (amount + valid STX address)
     const completeTransferMatch = userMessage.match(
-      /send\s+([\d.]+)\s*(?:stx|STX)?\s+to\s+([a-zA-Z0-9]{34,})/i
+      /send\s+([\d.]+)\s*(?:stx|STX)?\s+to\s+(ST[a-zA-Z0-9]{39}|SP[a-zA-Z0-9]{39})/i
     );
     if (completeTransferMatch) {
       const amount = parseFloat(completeTransferMatch[1]);
       const recipient = completeTransferMatch[2];
 
-      // Validate STX address format
-      if (recipient.match(/^(ST|SP)[a-zA-Z0-9]{39}$/)) {
-        return {
-          type: "transfer",
-          params: {
-            amount,
-            recipient,
-            memo: "Sent via Stacks Chat Assistant",
-          },
-        };
-      }
+      return {
+        type: "transfer",
+        params: {
+          amount,
+          recipient,
+          memo: "Sent via Stacks Chat Assistant",
+        },
+      };
+    }
+
+    // Handle partial transfer commands (amount but no valid address)
+    const partialTransferMatch = userMessage.match(
+      /send\s+([\d.]+)\s*(?:stx|STX)?\s+to\s+([a-zA-Z]+)/i
+    );
+    if (partialTransferMatch) {
+      // This indicates user wants to send but provided a name instead of address
+      // Let the AI handle asking for the actual STX address
+      return undefined;
     }
 
     // Check if we have complete transfer info from context + current message
@@ -745,7 +756,12 @@ Be brief but thorough. Help users complete their blockchain tasks efficiently.`;
   }
 
   getAvailableModels(): string[] {
-    return ["alibaba/tongyi-deepresearch-30b-a3b:free"];
+    return [
+      "alibaba/tongyi-deepresearch-30b-a3b:free",
+      "meituan/longcat-flash-chat:free",
+      "nvidia/nemotron-nano-9b-v2:free",
+      "anthropic/claude-3.5-sonnet",
+    ];
   }
 
   async testConnection(): Promise<{ success: boolean; error?: string }> {
